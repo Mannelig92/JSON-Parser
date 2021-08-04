@@ -26,37 +26,38 @@ public class Main {
         List<Employee> listCSV = parseCSV(columnMapping, fileName);
         List<Employee> listXML = parseXML("data.xml");
 
-        String CsvToJson = listToJson(listCSV);
+        String csvToJson = listToJson(listCSV);
         String dataCsvToJson = "data.json";
-        writeString(CsvToJson, dataCsvToJson);
+        writeString(csvToJson, dataCsvToJson);
 
         String xmlToJson = listToJson(listXML);
         String dataXmlToJson = "data2.json";
         writeString(xmlToJson, dataXmlToJson);
     }
 
-    private static List<Employee> parseXML(String s) { //проблема полагаю тут
+    private static List<Employee> parseXML(String data) { //проблема полагаю тут
         Document doc = null;
         List<Employee> list = new ArrayList<>();
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
-            doc = builder.parse(new File(s));
+            doc = builder.parse(new File(data));
 
             Node root = doc.getDocumentElement();    //получение корневого узла
             NodeList nodeList = root.getChildNodes();   //извлечение списка узлов
             for (int i = 0; i < nodeList.getLength(); i++) {
                 Node node_ = nodeList.item(i);
-                if(Node.ELEMENT_NODE == node_.getNodeType()) {
-                    System.out.println("Текущий узел: " + node_.getNodeName());
+                if (Node.ELEMENT_NODE == node_.getNodeType()) {
                     Element element = (Element) node_;
-                    Employee employee = (Employee) element;
-                    list.add(employee);
+                    long id = Long.parseLong(element.getElementsByTagName("id").item(0).getTextContent());
+                    String firstName = element.getElementsByTagName("firstName").item(0).getTextContent();
+                    String lastName = element.getElementsByTagName("lastName").item(0).getTextContent();
+                    String country = element.getElementsByTagName("country").item(0).getTextContent();
+                    int age = Integer.parseInt(element.getElementsByTagName("age").item(0).getTextContent());
+
+                    list.add(new Employee(id, firstName, lastName, country, age));
                 }
             }
-//            for (Employee i : list) {
-//                System.out.println(i);
-//            }
         } catch (ParserConfigurationException | SAXException | IOException e) {
             e.printStackTrace();
         }
@@ -79,7 +80,7 @@ public class Main {
         return list;
     }
 
-    private static String listToJson(List<Employee> list) { // не понимаю куда вставить \n что бы было не в одну строку
+    private static String listToJson(List<Employee> list) {
         GsonBuilder builder = new GsonBuilder();
         Gson gson = builder.create();
         Type listType = new TypeToken<List<Employee>>() {
